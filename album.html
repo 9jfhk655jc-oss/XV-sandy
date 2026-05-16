@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Álbum de Recuerdos · XV de Sandy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;500&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #1a2340;
+      --gold: #c8a96e;
+      --gold-light: #e8c98e;
+      --cream: #faf6ee;
+      --success: #3ecf8e;
+      --error: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--navy); color: var(--cream); font-family: 'Lato', sans-serif; min-height: 100vh; }
+
+    /* HERO */
+    .hero { text-align: center; padding: 48px 24px 32px; border-bottom: 1px solid #ffffff15; }
+    .hero-eyebrow { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 4px; color: var(--gold); margin-bottom: 12px; }
+    .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 7vw, 48px); font-weight: 300; color: var(--cream); line-height: 1.2; }
+    .hero-name { font-style: italic; color: var(--gold); display: block; }
+    .hero-sub { font-size: 13px; color: #ffffff66; margin-top: 8px; letter-spacing: 1px; }
+
+    /* UPLOAD PANEL */
+    .upload-panel { max-width: 480px; margin: 32px auto; padding: 0 20px; }
+    .name-input { width: 100%; background: #ffffff0d; border: 1px solid #ffffff22; border-radius: 12px; padding: 14px 18px; color: var(--cream); font-family: 'Lato', sans-serif; font-size: 15px; margin-bottom: 12px; transition: border-color .2s; outline: none; }
+    .name-input::placeholder { color: #ffffff44; }
+    .name-input:focus { border-color: var(--gold); }
+    .upload-btn { width: 100%; background: var(--gold); color: var(--navy); border: none; border-radius: 50px; padding: 16px 24px; font-family: 'Cinzel', serif; font-size: 14px; font-weight: 500; letter-spacing: 1px; cursor: pointer; transition: background .2s, transform .1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .upload-btn:hover { background: var(--gold-light); }
+    .upload-btn:active { transform: scale(0.98); }
+    .upload-btn:disabled { background: #ffffff33; color: #ffffff66; cursor: not-allowed; }
+    #file-input { display: none; }
+
+    /* PROGRESS */
+    .progress-wrap { margin-top: 16px; display: none; }
+    .progress-bar-bg { background: #ffffff15; border-radius: 50px; height: 6px; overflow: hidden; }
+    .progress-bar-fill { background: var(--gold); height: 100%; width: 0%; border-radius: 50px; transition: width .3s; }
+    .progress-label { font-size: 12px; color: #ffffff66; margin-top: 6px; text-align: center; }
+
+    /* STATUS */
+    .status-msg { display: none; text-align: center; border-radius: 12px; padding: 14px; margin-top: 12px; font-size: 14px; }
+    .status-msg.success { background: #3ecf8e22; border: 1px solid #3ecf8e55; color: var(--success); }
+    .status-msg.error { background: #ef444422; border: 1px solid #ef444455; color: var(--error); }
+
+    /* GALLERY HEADER */
+    .gallery-header { max-width: 1200px; margin: 32px auto 12px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; }
+    .gallery-title { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 3px; color: var(--gold); }
+    .live-indicator { font-size: 12px; color: #ffffff66; display: flex; align-items: center; gap: 6px; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+    .live-dot.offline { background: #ffffff44; animation: none; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* GRID */
+    .gallery-grid { max-width: 1200px; margin: 0 auto 60px; padding: 0 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    @media (min-width: 640px) { .gallery-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; } }
+    @media (min-width: 1024px) { .gallery-grid { grid-template-columns: repeat(5, 1fr); gap: 10px; } }
+    .media-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; cursor: pointer; background: #ffffff0a; animation: fadeIn .4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .media-item .play-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #00000044; font-size: 32px; pointer-events: none; }
+    .media-item .uploader-badge { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #00000099); padding: 16px 6px 4px; font-size: 10px; color: #ffffffcc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #ffffff33; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* LIGHTBOX */
+    #lightbox { display: none; position: fixed; inset: 0; background: #000000ee; z-index: 1000; align-items: center; justify-content: center; }
+    #lightbox.open { display: flex; }
+    #lightbox-img, #lightbox-video { max-width: 95vw; max-height: 90vh; object-fit: contain; border-radius: 4px; }
+    .lb-close { position: absolute; top: 16px; right: 16px; color: white; font-size: 32px; cursor: pointer; background: none; border: none; padding: 4px 8px; line-height: 1; }
+    .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); background: #ffffff22; border: none; color: white; font-size: 28px; padding: 12px 16px; cursor: pointer; border-radius: 4px; }
+    .lb-prev { left: 8px; }
+    .lb-next { right: 8px; }
+    .lb-nav:hover { background: #ffffff44; }
+    .lb-info { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: #ffffff88; font-size: 13px; }
+
+    /* FOOTER */
+    .portfolio-footer { text-align: center; padding: 24px 20px; border-top: 1px solid #ffffff10; color: #ffffff33; font-size: 11px; letter-spacing: 0.5px; line-height: 2; }
+    .portfolio-footer a { color: var(--gold); text-decoration: none; opacity: 0.7; }
+    .portfolio-footer a:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-eyebrow">✦ ÁLBUM DE RECUERDOS ✦</p>
+    <h1 class="hero-title">
+      XV Años de
+      <span class="hero-name">Sandra Lizeth</span>
+    </h1>
+    <p class="hero-sub">16 de Mayo · 2026</p>
+  </section>
+
+  <!-- UPLOAD -->
+  <section class="upload-panel">
+    <input type="text" id="nombre-input" class="name-input" placeholder="¿Cómo te llamas? (opcional)" maxlength="40">
+    <button class="upload-btn" id="upload-btn" onclick="document.getElementById('file-input').click()">
+      📸 Subir foto o video
+    </button>
+    <input type="file" id="file-input" accept="image/*,video/*">
+
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <p class="progress-label" id="progress-label">Subiendo... 0%</p>
+    </div>
+    <div class="status-msg success" id="msg-success">✅ ¡Listo! Ya lo pueden ver todos 🎉</div>
+    <div class="status-msg error" id="msg-error">❌ <span id="error-text">Algo salió mal, intenta de nuevo</span></div>
+  </section>
+
+  <!-- GALLERY -->
+  <div class="gallery-header">
+    <span class="gallery-title">MOMENTOS DEL FESTEJO</span>
+    <span class="live-indicator">
+      <span class="live-dot" id="live-dot"></span>
+      <span id="live-count">cargando...</span>
+    </span>
+  </div>
+  <div class="gallery-grid" id="gallery-grid">
+    <div class="empty-state">
+      <div class="icon">📷</div>
+      <p>Sé el primero en subir una foto o video</p>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX -->
+  <div id="lightbox">
+    <button class="lb-close" id="lb-close">✕</button>
+    <button class="lb-nav lb-prev" id="lb-prev">‹</button>
+    <img id="lightbox-img" style="display:none" src="" alt="">
+    <video id="lightbox-video" style="display:none" controls playsinline></video>
+    <button class="lb-nav lb-next" id="lb-next">›</button>
+    <div class="lb-info" id="lb-info"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="portfolio-footer">
+    Diseño & desarrollo por <a href="mailto:fpozas11@alumnos.uaq.mx">Fernando Pozas</a><br>
+    ¿Quieres un álbum digital para tu evento? Escríbeme 💌
+  </footer>
+
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // ── CONFIG ─────────────────────────────────────────────────────────
+    const CLOUDINARY_CLOUD = 'dmvozjfxh';
+    const CLOUDINARY_PRESET = 'xv_sandy_album';
+    const SUPABASE_URL = 'https://afjkhstvxpebifdjjgll.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmamtoc3R2eHBlYmlmZGpqZ2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4ODYyNzIsImV4cCI6MjA5NDQ2MjI3Mn0.FWThnIQdOHdq2sAicX0khVty0AfS43FFwSPsWLWxAbY';
+    // ──────────────────────────────────────────────────────────────────
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // ── ESTADO ────────────────────────────────────────────────────────
+    let allMedia = [];
+    let currentIndex = 0;
+
+    // ── VALIDACIÓN ────────────────────────────────────────────────────
+    const MAX_BYTES = 100 * 1024 * 1024; // 100 MB
+    const MAX_SECS  = 60;
+
+    function validateFile(file) {
+      if (!file.type.startsWith('image/') && !file.type.startsWith('video/'))
+        return 'Solo se aceptan fotos y videos';
+      if (file.size > MAX_BYTES)
+        return 'El archivo es muy grande (máx 100 MB)';
+      return null;
+    }
+
+    function checkVideoDuration(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const v = document.createElement('video');
+        v.preload = 'metadata';
+        v.onloadedmetadata = () => {
+          URL.revokeObjectURL(url);
+          v.duration > MAX_SECS ? reject('El video debe ser menor a 1 minuto') : resolve();
+        };
+        v.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+        v.src = url;
+      });
+    }
+
+    // ── UI ────────────────────────────────────────────────────────────
+    function showProgress(show) {
+      document.getElementById('progress-wrap').style.display = show ? 'block' : 'none';
+    }
+    function setProgress(pct) {
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-label').textContent = `Subiendo... ${Math.round(pct)}%`;
+    }
+    function showMsg(type, text) {
+      document.getElementById('msg-success').style.display = 'none';
+      document.getElementById('msg-error').style.display = 'none';
+      if (type === 'success') document.getElementById('msg-success').style.display = 'block';
+      if (type === 'error') {
+        document.getElementById('error-text').textContent = text || 'Algo salió mal, intenta de nuevo';
+        document.getElementById('msg-error').style.display = 'block';
+      }
+    }
+    function setUploading(uploading) {
+      const btn = document.getElementById('upload-btn');
+      btn.disabled = uploading;
+      btn.textContent = uploading ? '⏳ Subiendo...' : '📸 Subir foto o video';
+      showProgress(uploading);
+      if (!uploading) setProgress(0);
+    }
+    function updateCounter() {
+      const n = allMedia.length;
+      document.getElementById('live-count').textContent = `${n} momento${n !== 1 ? 's' : ''} · en vivo`;
+    }
+
+    // ── UPLOAD ────────────────────────────────────────────────────────
+    document.getElementById('file-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      e.target.value = '';
+      showMsg(null);
+
+      const basicErr = validateFile(file);
+      if (basicErr) { showMsg('error', basicErr); return; }
+
+      if (file.type.startsWith('video/')) {
+        try { await checkVideoDuration(file); }
+        catch (durErr) { showMsg('error', durErr); return; }
+      }
+
+      const nombre = document.getElementById('nombre-input').value.trim();
+      const tipo = file.type.startsWith('video/') ? 'video' : 'foto';
+
+      setUploading(true);
+
+      try {
+        // 1. Subir a Cloudinary con XMLHttpRequest para tener progreso real
+        const url = await uploadToCloudinary(file);
+
+        // 2. Guardar metadata en Supabase (dispara el realtime)
+        const { error } = await supabase.from('xv_uploads').insert({
+          url,
+          tipo,
+          nombre: nombre || null
+        });
+
+        if (error) throw error;
+
+        setUploading(false);
+        showMsg('success');
+      } catch (err) {
+        console.error('Upload error:', err);
+        setUploading(false);
+        showMsg('error', navigator.onLine
+          ? 'Error al subir. Intenta de nuevo.'
+          : 'Sin conexión. Verifica tu red.');
+      }
+    });
+
+    function uploadToCloudinary(file) {
+      return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/auto/upload`);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setProgress((e.loaded / e.total) * 100);
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data.secure_url);
+          } else {
+            reject(new Error('Cloudinary error: ' + xhr.status));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(formData);
+      });
+    }
+
+    // ── GALERÍA ───────────────────────────────────────────────────────
+    function buildItem(row) {
+      const item = document.createElement('div');
+      item.className = 'media-item';
+      item.dataset.id = row.id;
+
+      if (row.tipo === 'video') {
+        const v = document.createElement('video');
+        v.src = row.url;
+        v.muted = true;
+        v.preload = 'metadata';
+        v.playsInline = true;
+        item.appendChild(v);
+        const icon = document.createElement('div');
+        icon.className = 'play-icon';
+        icon.textContent = '▶';
+        item.appendChild(icon);
+      } else {
+        const img = document.createElement('img');
+        img.src = row.url;
+        img.loading = 'lazy';
+        img.alt = row.nombre ? `Foto de ${row.nombre}` : 'Foto del festejo';
+        item.appendChild(img);
+      }
+
+      if (row.nombre) {
+        const badge = document.createElement('div');
+        badge.className = 'uploader-badge';
+        badge.textContent = `📸 ${row.nombre}`;
+        item.appendChild(badge);
+      }
+
+      item.addEventListener('click', () => openLightbox(row.id));
+      return item;
+    }
+
+    function addToGrid(row, prepend = false) {
+      const grid = document.getElementById('gallery-grid');
+      const empty = grid.querySelector('.empty-state');
+      if (empty) empty.remove();
+      const item = buildItem(row);
+      if (prepend) grid.insertBefore(item, grid.firstChild);
+      else grid.appendChild(item);
+    }
+
+    // Carga inicial
+    (async () => {
+      const { data, error } = await supabase
+        .from('xv_uploads')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Load error:', error);
+        document.getElementById('live-dot').className = 'live-dot offline';
+        document.getElementById('live-count').textContent = 'error de conexión';
+        return;
+      }
+
+      allMedia = data || [];
+      allMedia.forEach(row => addToGrid(row, false));
+      updateCounter();
+
+      // Realtime: escuchar nuevos uploads
+      supabase.channel('xv-album')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'xv_uploads'
+        }, payload => {
+          const row = payload.new;
+          if (allMedia.find(m => m.id === row.id)) return;
+          allMedia.unshift(row);
+          addToGrid(row, true);
+          updateCounter();
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            document.getElementById('live-dot').className = 'live-dot';
+          } else {
+            document.getElementById('live-dot').className = 'live-dot offline';
+          }
+        });
+    })();
+
+    // ── LIGHTBOX ──────────────────────────────────────────────────────
+    function openLightbox(id) {
+      currentIndex = allMedia.findIndex(m => m.id === id);
+      if (currentIndex === -1) return;
+      renderLightbox();
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    function renderLightbox() {
+      const item = allMedia[currentIndex];
+      const lbImg = document.getElementById('lightbox-img');
+      const lbVid = document.getElementById('lightbox-video');
+      lbImg.style.display = 'none';
+      lbVid.style.display = 'none';
+      lbVid.pause();
+
+      if (item.tipo === 'video') {
+        lbVid.src = item.url;
+        lbVid.style.display = 'block';
+        lbVid.play().catch(() => {});
+      } else {
+        lbImg.src = item.url;
+        lbImg.style.display = 'block';
+      }
+
+      const info = item.nombre ? `  ·  📸 ${item.nombre}` : '';
+      document.getElementById('lb-info').textContent =
+        `${currentIndex + 1} / ${allMedia.length}${info}`;
+      document.getElementById('lb-prev').style.display = currentIndex > 0 ? 'block' : 'none';
+      document.getElementById('lb-next').style.display =
+        currentIndex < allMedia.length - 1 ? 'block' : 'none';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+      document.getElementById('lightbox-video').pause();
+    }
+
+    document.getElementById('lb-close').addEventListener('click', closeLightbox);
+    document.getElementById('lightbox').addEventListener('click', e => {
+      if (e.target.id === 'lightbox') closeLightbox();
+    });
+    document.getElementById('lb-prev').addEventListener('click', e => {
+      e.stopPropagation();
+      if (currentIndex > 0) { currentIndex--; renderLightbox(); }
+    });
+    document.getElementById('lb-next').addEventListener('click', e => {
+      e.stopPropagation();
+      if (currentIndex < allMedia.length - 1) { currentIndex++; renderLightbox(); }
+    });
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('lightbox').classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft' && currentIndex > 0) { currentIndex--; renderLightbox(); }
+      if (e.key === 'ArrowRight' && currentIndex < allMedia.length - 1) { currentIndex++; renderLightbox(); }
+    });
+  </script>
+</body>
+</html>
