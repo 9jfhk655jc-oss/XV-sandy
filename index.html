@@ -589,23 +589,16 @@ for(let i = 1; i <= pases; i++){
   <p style="font-size:14px;color:#ffffff66;margin:0 auto 32px;max-width:320px;">
     Escanea el QR con tu celular y sube tus fotos y videos al álbum en tiempo real
   </p>
-  <div id="qrcode" style="display:inline-block;background:#faf6ee;padding:16px;border-radius:16px;margin-bottom:24px;"></div>
-  <br>
+  <a href="album.html">
+    <img
+      src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&color=1a2340&bgcolor=faf6ee&data=https://9jfhk655jc-oss.github.io/XV-sandy/album.html&margin=10"
+      alt="QR álbum XV Sandy"
+      style="border-radius:16px;margin-bottom:24px;display:block;"
+    >
+  </a>
   <a href="album.html" style="display:inline-block;background:#c8a96e;color:#1a2340;text-decoration:none;padding:14px 32px;border-radius:50px;font-family:'Cinzel',serif;font-size:13px;font-weight:500;letter-spacing:1px;margin-top:8px;">
     Ver álbum →
   </a>
 </section>
-
-<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
-<script>
-  new QRCode(document.getElementById('qrcode'), {
-    text: 'https://9jfhk655jc-oss.github.io/XV-sandy/album.html',
-    width: 200,
-    height: 200,
-    colorDark: '#1a2340',
-    colorLight: '#faf6ee',
-    correctLevel: QRCode.CorrectLevel.M
-  });
-</script>
 </body>
 </html>
