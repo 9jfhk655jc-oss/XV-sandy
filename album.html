@@ -156,7 +156,7 @@
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmamtoc3R2eHBlYmlmZGpqZ2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4ODYyNzIsImV4cCI6MjA5NDQ2MjI3Mn0.FWThnIQdOHdq2sAicX0khVty0AfS43FFwSPsWLWxAbY';
     // ──────────────────────────────────────────────────────────────────
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
     // ── ESTADO ────────────────────────────────────────────────────────
     let allMedia = [];
@@ -242,7 +242,7 @@
         const url = await uploadToCloudinary(file);
 
         // 2. Guardar metadata en Supabase (dispara el realtime)
-        const { error } = await supabase.from('xv_uploads').insert({
+        const { error } = await db.from('xv_uploads').insert({
           url,
           tipo,
           nombre: nombre || null
@@ -335,7 +335,7 @@
 
     // Carga inicial
     (async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('xv_uploads')
         .select('*')
         .order('created_at', { ascending: false });
@@ -352,7 +352,7 @@
       updateCounter();
 
       // Realtime: escuchar nuevos uploads
-      supabase.channel('xv-album')
+      db.channel('xv-album')
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
